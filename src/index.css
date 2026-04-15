@@ -1,111 +1,106 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+.event-page {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top center, rgba(255, 120, 210, 0.10) 0%, transparent 26%),
+    radial-gradient(circle at bottom center, rgba(190, 110, 255, 0.10) 0%, transparent 30%),
+    linear-gradient(180deg, #04040a 0%, #090913 42%, #05050a 100%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+.event-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: calc(74px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
   display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 6, 12, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-body {
-  margin: 0;
+.event-logo {
+  width: 118px;
+  height: auto;
+  display: block;
+  opacity: 0.98;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.event-feed {
+  height: calc(100dvh - 74px - env(safe-area-inset-top));
+  overflow-y: auto;
+  padding: 14px 14px 110px;
+  display: grid;
+  gap: 10px; /* mucha menos separación entre hylos */
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+.event-hylo-card {
+  border-radius: 28px;
+  padding: 18px 16px 16px;
+  background: linear-gradient(180deg, rgba(34,34,40,0.96) 0%, rgba(18,18,22,0.985) 100%);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.event-hylo-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-code {
+.event-hylo-author {
   font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  font-weight: 600;
+  color: white;
+}
+
+.event-hylo-time {
+  font-size: 13px;
+  color: rgba(255,255,255,0.62);
+  white-space: nowrap;
+}
+
+.event-hylo-body {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: rgba(255,255,255,0.96);
+  font-size: 16px;
+  line-height: 1.42;
+}
+
+.event-hylo-image {
+  width: 100%;
+  display: block;
+  margin-top: 14px;
+  border-radius: 22px;
+  object-fit: cover;
+}
+
+.event-plus-btn {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: 72px;
+  height: 56px;
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #efc3eb 0%, #dfaddf 100%);
+  color: #160d15;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 500;
+  box-shadow:
+    0 10px 30px rgba(243, 179, 234, 0.20),
+    0 0 22px rgba(243, 179, 234, 0.12);
+  cursor: pointer;
+  z-index: 30;
 }
