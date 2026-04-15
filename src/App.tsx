@@ -1,16 +1,14 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { supabase } from "./lib/supabase";
+import "./index.css";
 
-
-type EventHylo = {
+type EventPostRow = {
   id: number;
+  name: string | null;
   body: string;
-  created_at: string;
-  image_url?: string | null;
   is_anonymous: boolean;
-  author_name?: string | null;
+  image_url: string | null;
+  created_at: string;
 };
 
 const MAX_CHARS = 600;
@@ -42,11 +40,13 @@ function formatHyloDate(iso: string) {
   return d.toLocaleDateString("es-ES");
 }
 
-export default function EventFeedPage() {
+export default function App() {
+  const particles = useMemo(() => Array.from({ length: 24 }), []);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [rows, setRows] = useState<EventHylo[]>([]);
+  const [rows, setRows] = useState<EventPostRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openImageUrl, setOpenImageUrl] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
@@ -63,25 +63,49 @@ export default function EventFeedPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createClosing, setCreateClosing] = useState(false);
 
-  const particles = useMemo(() => Array.from({ length: 24 }), []);
   const overLimit = body.length > MAX_CHARS;
 
   useEffect(() => {
-    fetchRows();
+    fetchPosts();
   }, []);
 
-  async function fetchRows() {
+  useEffect(() => {
+    const channel = supabase
+      .channel("event-posts-feed")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "event_posts",
+        },
+        async () => {
+          await fetchPosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  async function fetchPosts() {
     setLoading(true);
 
     const { data, error } = await supabase
-      .from("panel_posts")
+      .from("event_posts")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) {
-      setRows((data as EventHylo[]) ?? []);
+    if (error) {
+      console.error("FETCH EVENT POSTS ERROR:", error);
+      setRows([]);
+      setLoading(false);
+      return;
     }
 
+    setRows((data as EventPostRow[]) ?? []);
     setLoading(false);
   }
 
@@ -168,7 +192,9 @@ export default function EventFeedPage() {
 
       if (file) {
         const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-        const fileName = `event-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const fileName = `event-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("panel-images")
@@ -177,7 +203,10 @@ export default function EventFeedPage() {
             upsert: false,
           });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("UPLOAD ERROR:", uploadError);
+          throw uploadError;
+        }
 
         const { data: publicUrlData } = supabase.storage
           .from("panel-images")
@@ -189,16 +218,16 @@ export default function EventFeedPage() {
       const payload = {
         name: isAnonymous ? "" : cleanName || "Usuario",
         body: cleanBody,
-        category: "fiestas",
         is_anonymous: isAnonymous,
         image_url: imageUrl,
       };
 
-      const { error } = await supabase
-        .from("panel_posts")
-        .insert([payload]);
+      const { error } = await supabase.from("event_posts").insert([payload]);
 
-      if (error) throw error;
+      if (error) {
+        console.error("INSERT EVENT POST ERROR:", error);
+        throw error;
+      }
 
       closeConfirm();
       closeCreate();
@@ -215,8 +244,9 @@ export default function EventFeedPage() {
 
       setSuccessClosing(false);
       setSuccessOpen(true);
-      await fetchRows();
+      await fetchPosts();
     } catch (error: any) {
+      console.error("PUBLISH EVENT HYLO ERROR:", error);
       setBlockedMsg("No se pudo publicar el hylo.");
       closeConfirm();
     } finally {
@@ -248,34 +278,67 @@ export default function EventFeedPage() {
       </div>
 
       <header className="event-header">
-        <img src="/hylo_logo.png" alt="Hylo" className="event-logo" />
+        <img src="/hylonight.png" alt="Hylo Night" className="event-logo" />
       </header>
 
       <main className="event-feed">
-        {loading ? null : rows.map((r) => (
-          <article key={r.id} className="event-hylo-card">
-            <div className="event-hylo-top">
-              <div className="event-hylo-author">
-                {r.is_anonymous ? "Anónimo" : (r.author_name || "Usuario")}
-              </div>
-              <div className="event-hylo-time">{formatHyloDate(r.created_at)}</div>
-            </div>
+        {loading ? (
+          <div className="event-empty">Cargando hylos...</div>
+        ) : rows.length === 0 ? (
+          <div className="event-empty">Aún no hay hylos en este evento.</div>
+        ) : (
+          rows.map((r) => {
+            const authorName = r.is_anonymous ? "Anónimo" : r.name?.trim() || "Usuario";
 
-            <p className="event-hylo-body">{r.body}</p>
+            return (
+              <article
+                key={r.id}
+                className={`event-hylo-card ${r.image_url ? "event-hylo-card--image" : ""}`}
+              >
+                <div className="event-hylo-overlay" />
 
-            {r.image_url ? (
-              <img src={r.image_url} alt="" className="event-hylo-image" />
-            ) : null}
-          </article>
-        ))}
+                <div className="event-hylo-content">
+                  <div className="event-hylo-badge">
+                    <span className="event-hylo-badge-emoji" aria-hidden="true">
+                      💘
+                    </span>
+                    <span>Hylo Night</span>
+                  </div>
+
+                  <div className="event-hylo-top">
+                    <div className="event-hylo-author">{authorName}</div>
+                    <div className="event-hylo-time">{formatHyloDate(r.created_at)}</div>
+                  </div>
+
+                  <p className="event-hylo-body">{r.body}</p>
+
+                  {r.image_url ? (
+                    <div className="event-hylo-image-wrap">
+                      <img
+                        src={r.image_url}
+                        alt=""
+                        className="event-hylo-image"
+                        loading="lazy"
+                        onClick={() => setOpenImageUrl(r.image_url)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })
+        )}
       </main>
 
-      <button type="button" className="event-plus-btn" onClick={openCreate}>
+      <button type="button" className="event-plus-btn" onClick={openCreate} aria-label="Publicar hylo">
         +
       </button>
 
       {createOpen && (
-        <div className={`hylo-modal-backdrop ${createClosing ? "is-closing" : ""}`} onClick={closeCreate}>
+        <div
+          className={`hylo-modal-backdrop ${createClosing ? "is-closing" : ""}`}
+          onClick={closeCreate}
+        >
           <div
             className={`hylo-modal ${createClosing ? "is-closing" : ""}`}
             onClick={(e) => e.stopPropagation()}
@@ -399,8 +462,7 @@ export default function EventFeedPage() {
             </div>
 
             <p className="hylo-confirm-text">
-              Al publicar confirmas que no estás compartiendo contenido sensible,
-              ilegal, ni información personal de terceros.
+              Al publicar confirmas que no estás compartiendo contenido sensible, ilegal, ni información personal de terceros.
             </p>
 
             <div className="hylo-confirm-actions">
@@ -429,9 +491,7 @@ export default function EventFeedPage() {
               Hylo enviado
             </div>
 
-            <p className="hylo-confirm-text">
-              Tu hylo se ha enviado correctamente.
-            </p>
+            <p className="hylo-confirm-text">Tu hylo se ha enviado correctamente.</p>
 
             <div className="hylo-confirm-actions">
               <button className="hylo-btn hylo-btn-primary" type="button" onClick={closeSuccess}>
@@ -439,6 +499,23 @@ export default function EventFeedPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {openImageUrl && (
+        <div onClick={() => setOpenImageUrl(null)} className="event-image-viewer">
+          <img src={openImageUrl} alt="" className="event-image-viewer-img" />
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenImageUrl(null);
+            }}
+            className="event-image-viewer-close"
+          >
+            ✕
+          </button>
         </div>
       )}
     </div>
