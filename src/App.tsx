@@ -13,6 +13,34 @@ type EventPostRow = {
 
 const MAX_CHARS = 600;
 
+const BLOCKED_NAMES = [
+  "maria", "maria carmen", "carmen", "ana", "ana maria", "laura", "marta",
+  "lucia", "sofia", "paula", "elena", "isabel", "patricia", "sara", "alba",
+  "cristina", "laura", "irene", "claudia", "beatriz", "julia", "andrea",
+  "noelia", "alicia", "sandra", "eva", "rocio", "silvia", "nuria", "rosa",
+  "teresa", "pilar", "lorena", "veronica", "monica", "raquel", "francisca",
+
+  "antonio", "manuel", "jose", "francisco", "david", "juan", "javier",
+  "daniel", "jose antonio", "jose luis", "carlos", "alejandro", "jesus",
+  "miguel", "rafael", "pedro", "pablo", "sergio", "fernando", "jorge",
+  "alberto", "adrian", "ruben", "ivan", "victor", "roberto", "diego",
+  "mario", "angel", "andres", "marcos"
+];
+
+const BLOCKED_INSULTS = [
+  "puta", "puto", "gilipollas", "idiota", "imbecil", "subnormal", "retrasado",
+  "payaso", "payasa", "mierda", "cabron", "cabrona", "hijo de puta",
+  "hija de puta", "zorra", "perra", "cerda", "mongolo", "mongola",
+  "malparido", "malparida", "tonto", "tonta", "capullo", "capulla",
+  "asqueroso", "asquerosa", "basura", "fracasado", "fracasada",
+  "chupapollas", "comepollas", "maricon", "maricona", "bollera",
+
+  "bitch", "slut", "whore", "asshole", "idiot", "stupid", "dumbass", "moron",
+  "piece of shit", "son of a bitch", "motherfucker", "fucker", "fuck you",
+  "fuck off", "dickhead", "jackass", "bastard", "loser", "trash", "scumbag",
+  "creep", "pervert", "retard", "stfu"
+];
+
 function formatHyloDate(iso: string) {
   const d = new Date(iso);
   const now = new Date();
@@ -40,19 +68,65 @@ function formatHyloDate(iso: string) {
   return d.toLocaleDateString("es-ES");
 }
 
+function normalizeText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function containsBlockedTerm(text: string, terms: string[]) {
+  const normalized = normalizeText(text);
+
+  return terms.some((term) => {
+    const normalizedTerm = normalizeText(term);
+    const regex = new RegExp(`(^|\\s)${escapeRegExp(normalizedTerm)}(?=\\s|$)`, "i");
+    return regex.test(normalized);
+  });
+}
+
+function validateHyloContent(body: string, name: string) {
+  const normalizedBody = normalizeText(body);
+  const normalizedName = normalizeText(name);
+
+  if (!normalizedBody) {
+    return "Escribe algo antes de publicar.";
+  }
+
+  if (normalizedBody.length > MAX_CHARS) {
+    return `Máximo ${MAX_CHARS} caracteres.`;
+  }
+
+  if (containsBlockedTerm(normalizedBody, BLOCKED_INSULTS)) {
+    return "Tu hylo contiene insultos o lenguaje no permitido.";
+  }
+
+  if (containsBlockedTerm(normalizedBody, BLOCKED_NAMES)) {
+    return "No se permiten nombres propios en el contenido del hylo.";
+  }
+
+  if (normalizedName && containsBlockedTerm(normalizedName, BLOCKED_INSULTS)) {
+    return "El nombre contiene lenguaje no permitido.";
+  }
+
+  if (normalizedName && containsBlockedTerm(normalizedName, BLOCKED_NAMES)) {
+    return "No se permiten nombres reales en el campo de nombre.";
+  }
+
+  return "";
+}
+
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const particleStyles = useMemo(
-    () =>
-      Array.from({ length: 14 }, (_, i) => ({
-        "--left": `${4 + ((i * 11) % 88)}%`,
-        "--size": `${4 + (i % 4) * 2}px`,
-        "--delay": `${(i % 7) * 0.8}s`,
-        "--duration": `${8 + (i % 5)}s`,
-      })) as CSSProperties[],
-    []
-  );
+  const particleStyles = useMemo(() => [], []);
 
   const [rows, setRows] = useState<EventPostRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +148,7 @@ export default function App() {
   const [createClosing, setCreateClosing] = useState(false);
 
   const overLimit = body.length > MAX_CHARS;
-  const hasOverlayOpen = createOpen || confirmOpen || successOpen || !!openImageUrl;
+  const lockPage = createOpen || confirmOpen || successOpen || !!openImageUrl;
 
   useEffect(() => {
     fetchPosts();
@@ -102,21 +176,20 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (hasOverlayOpen) {
-      document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
+    const bodyEl = document.body;
+
+    if (lockPage) {
+      bodyEl.style.overflow = "hidden";
     } else {
-      document.body.style.overflowY = "auto";
-      document.body.style.overflowX = "hidden";
-      document.body.style.touchAction = "pan-y";
+      bodyEl.style.overflowX = "hidden";
+      bodyEl.style.overflowY = "auto";
     }
 
     return () => {
-      document.body.style.overflowY = "auto";
-      document.body.style.overflowX = "hidden";
-      document.body.style.touchAction = "pan-y";
+      bodyEl.style.overflowX = "hidden";
+      bodyEl.style.overflowY = "auto";
     };
-  }, [hasOverlayOpen]);
+  }, [lockPage]);
 
   async function fetchPosts() {
     const { data, error } = await supabase
@@ -151,14 +224,12 @@ export default function App() {
 
   function openConfirm() {
     const cleanBody = body.trim();
+    const cleanName = name.trim();
 
-    if (!cleanBody) {
-      setBlockedMsg("Escribe algo antes de publicar.");
-      return;
-    }
+    const validationError = validateHyloContent(cleanBody, cleanName);
 
-    if (cleanBody.length > MAX_CHARS) {
-      setBlockedMsg(`Máximo ${MAX_CHARS} caracteres.`);
+    if (validationError) {
+      setBlockedMsg(validationError);
       return;
     }
 
@@ -199,14 +270,10 @@ export default function App() {
     const cleanBody = body.trim();
     const cleanName = name.trim();
 
-    if (!cleanBody) {
-      setBlockedMsg("Escribe algo antes de publicar.");
-      closeConfirm();
-      return;
-    }
+    const validationError = validateHyloContent(cleanBody, cleanName);
 
-    if (cleanBody.length > MAX_CHARS) {
-      setBlockedMsg(`Máximo ${MAX_CHARS} caracteres.`);
+    if (validationError) {
+      setBlockedMsg(validationError);
       closeConfirm();
       return;
     }
@@ -283,16 +350,6 @@ export default function App() {
       <div className="bg-orb bg-orb-1" />
       <div className="bg-orb bg-orb-2" />
       <div className="bg-orb bg-orb-3" />
-
-      <div className="particles" aria-hidden="true">
-        {particleStyles.map((style, i) => (
-          <span
-            key={i}
-            className={`particle particle-${(i % 6) + 1}`}
-            style={style}
-          />
-        ))}
-      </div>
 
       <header className="event-header">
         <img src="/hylonight.png" alt="Hylo Night" className="event-logo" />
@@ -546,4 +603,3 @@ export default function App() {
     </div>
   );
 }
-
