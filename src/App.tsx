@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import "./index.css";
 
@@ -126,7 +126,6 @@ function validateHyloContent(body: string, name: string) {
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const particleStyles = useMemo(() => [], []);
 
   const [rows, setRows] = useState<EventPostRow[]>([]);
   const [loading, setLoading] = useState(true);
