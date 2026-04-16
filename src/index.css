@@ -30,13 +30,8 @@ body {
   min-height: 100dvh;
   overflow-x: hidden;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: auto;
   font-family: "Raleway", system-ui, sans-serif;
-  background:
-    radial-gradient(circle at top center, rgba(255, 120, 210, 0.06) 0%, transparent 22%),
-    radial-gradient(circle at bottom center, rgba(190, 110, 255, 0.06) 0%, transparent 26%),
-    linear-gradient(180deg, #04040a 0%, #090913 42%, #05050a 100%);
+  background: linear-gradient(180deg, #04040a 0%, #090913 42%, #05050a 100%);
   color: rgba(255, 255, 255, 0.92);
   -webkit-text-size-adjust: 100%;
 }
@@ -66,9 +61,9 @@ img {
 .bg-orb {
   position: absolute;
   border-radius: 999px;
-  filter: blur(56px);
+  filter: blur(42px);
   pointer-events: none;
-  opacity: 0.26;
+  opacity: 0.14;
   z-index: 0;
 }
 
@@ -97,35 +92,14 @@ img {
   background: rgba(255, 170, 210, 0.08);
 }
 
-/* PARTÍCULAS MUY SUAVES */
+/* PARTÍCULAS OCULTAS PARA MEJORAR SCROLL */
 .particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
+  display: none;
 }
 
 .particle {
-  position: absolute;
-  left: var(--left);
-  bottom: -20px;
-  width: var(--size);
-  height: var(--size);
-  border-radius: 999px;
-  background: rgba(243, 179, 234, 0.18);
-  box-shadow: none;
-  animation: floatUp var(--duration) linear infinite;
-  animation-delay: var(--delay);
-  opacity: 0.22;
+  display: none;
 }
-
-.particle-1 { background: rgba(243, 179, 234, 0.24); }
-.particle-2 { background: rgba(255, 158, 220, 0.18); }
-.particle-3 { background: rgba(232, 170, 255, 0.18); }
-.particle-4 { background: rgba(255, 190, 235, 0.16); }
-.particle-5 { background: rgba(243, 179, 234, 0.14); }
-.particle-6 { background: rgba(255, 140, 210, 0.16); }
 
 @keyframes floatUp {
   0% {
@@ -151,13 +125,13 @@ img {
   top: 0;
   left: 0;
   width: 100%;
-  height: calc(74px + env(safe-area-inset-top));
+  height: calc(72px + env(safe-area-inset-top));
   padding-top: env(safe-area-inset-top);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
-  background: rgba(6, 6, 12, 0.94);
+  background: rgba(7, 7, 12, 0.96);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -166,10 +140,11 @@ img {
   height: auto;
   display: block;
   opacity: 0.98;
+  filter: none;
 }
 
 .event-header-spacer {
-  height: calc(74px + env(safe-area-inset-top));
+  height: calc(72px + env(safe-area-inset-top));
   width: 100%;
   flex-shrink: 0;
 }
@@ -181,17 +156,17 @@ img {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 12px 12px 120px;
+  padding: 10px 12px 110px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .event-empty {
   background: linear-gradient(180deg, rgba(26, 20, 28, 0.96) 0%, rgba(15, 12, 18, 0.985) 100%);
   border-radius: 20px;
   padding: 18px 16px;
-  box-shadow: 0 8px 18px rgba(0,0,0,.12);
+  box-shadow: 0 6px 14px rgba(0,0,0,.10);
   text-align: center;
   font-size: 13px;
   color: rgba(255,255,255,.75);
@@ -200,40 +175,35 @@ img {
 
 .event-hylo-card {
   position: relative;
-  border-radius: 22px;
-  padding: 14px 14px 12px;
+  border-radius: 24px;
+  padding: 15px 15px 13px;
   overflow: hidden;
-  border: 1px solid rgba(255, 170, 220, 0.08);
-  box-shadow:
-    0 6px 14px rgba(0,0,0,0.14),
-    inset 0 1px 0 rgba(255,255,255,0.03);
+  border: 1px solid rgba(255, 170, 220, 0.09);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
   background:
-    radial-gradient(circle at top left, rgba(255, 95, 170, 0.12) 0%, rgba(255, 95, 170, 0.03) 28%, transparent 58%),
-    radial-gradient(circle at bottom right, rgba(255, 110, 210, 0.04) 0%, transparent 34%),
-    linear-gradient(180deg, rgba(24, 17, 23, 0.985) 0%, rgba(12, 10, 15, 0.995) 100%);
+    radial-gradient(circle at top left, rgba(255, 95, 170, 0.10) 0%, rgba(255, 95, 170, 0.03) 30%, transparent 60%),
+    linear-gradient(180deg, rgba(24, 17, 23, 0.99) 0%, rgba(12, 10, 15, 1) 100%);
 }
 
 .event-hylo-card--image {
-  padding: 13px 13px 12px;
+  padding: 15px 15px 13px;
 }
 
 .event-hylo-overlay {
   position: absolute;
   inset: 0;
-  border-radius: 22px;
+  border-radius: 24px;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.012) 0%, transparent 36%),
-    radial-gradient(circle at top left, rgba(255,170,220,0.05) 0%, transparent 42%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.012) 0%, transparent 36%);
 }
 
 .event-hylo-shine {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: 22px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.018) 0%, transparent 24%, transparent 100%);
-  opacity: 0.55;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.015) 0%, transparent 24%, transparent 100%);
+  opacity: 0.35;
 }
 
 .event-hylo-content {
@@ -332,16 +302,14 @@ img {
 .event-plus-btn--fab {
   position: fixed;
   right: 18px;
-  bottom: calc(18px + env(safe-area-inset-bottom));
+  bottom: calc(24px + env(safe-area-inset-bottom));
   width: 64px;
   height: 64px;
   border-radius: 999px;
   border: 1px solid rgba(255, 195, 235, 0.26);
   background: linear-gradient(180deg, #efc3eb 0%, #dfa6df 100%);
   color: #1b101a;
-  box-shadow:
-    0 10px 20px rgba(243, 179, 234, 0.16),
-    0 0 10px rgba(243, 179, 234, 0.08);
+  box-shadow: 0 10px 20px rgba(243, 179, 234, 0.16);
   z-index: 50;
   transition: transform 140ms ease, filter 140ms ease;
   display: flex;
@@ -359,8 +327,8 @@ img {
 }
 
 .event-plus-icon {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   max-width: none;
   display: block;
   object-fit: contain;
@@ -757,25 +725,29 @@ img {
 }
 
 @media (max-width: 480px) {
+  .bg-orb {
+    display: none;
+  }
+
   .event-feed {
     max-width: none;
-    padding: 10px 10px 112px;
-    gap: 8px;
+    padding: 10px 10px 108px;
+    gap: 10px;
   }
 
   .event-hylo-card {
-    border-radius: 20px;
-    padding: 13px 13px 11px;
+    border-radius: 22px;
+    padding: 14px 14px 12px;
   }
 
   .event-hylo-card--image {
-    padding: 12px 12px 11px;
-    border-radius: 18px;
+    padding: 14px 14px 12px;
+    border-radius: 22px;
   }
 
   .event-hylo-overlay,
   .event-hylo-shine {
-    border-radius: 20px;
+    border-radius: 22px;
   }
 
   .event-hylo-badge {
@@ -808,14 +780,14 @@ img {
 
   .event-plus-btn--fab {
     right: 16px;
-    bottom: calc(16px + env(safe-area-inset-bottom));
-    width: 60px;
-    height: 60px;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 62px;
+    height: 62px;
   }
 
   .event-plus-icon {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
 
   .hylo-modal {
