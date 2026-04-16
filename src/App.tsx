@@ -79,8 +79,8 @@ export default function App() {
           schema: "public",
           table: "event_posts",
         },
-        async () => {
-          await fetchPosts();
+        () => {
+          fetchPosts();
         }
       )
       .subscribe();
@@ -91,8 +91,6 @@ export default function App() {
   }, []);
 
   async function fetchPosts() {
-    setLoading(true);
-
     const { data, error } = await supabase
       .from("event_posts")
       .select("*")
@@ -243,7 +241,7 @@ export default function App() {
       setSuccessClosing(false);
       setSuccessOpen(true);
       await fetchPosts();
-    } catch (error: any) {
+    } catch (error) {
       console.error("PUBLISH EVENT HYLO ERROR:", error);
       setBlockedMsg("No se pudo publicar el hylo.");
       closeConfirm();
@@ -276,12 +274,12 @@ export default function App() {
       </div>
 
       <header className="event-header">
-  <img src="/hylonight.png" alt="Hylo Night" className="event-logo" />
-</header>
+        <img src="/hylonight.png" alt="Hylo Night" className="event-logo" />
+      </header>
 
-<div className="event-header-spacer" />
+      <div className="event-header-spacer" />
 
-<main className="event-feed">
+      <main className="event-feed">
         {loading ? (
           <div className="event-empty">Cargando hylos...</div>
         ) : rows.length === 0 ? (
