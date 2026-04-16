@@ -192,9 +192,7 @@ export default function App() {
 
       if (file) {
         const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-        const fileName = `event-${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2)}.${fileExt}`;
+        const fileName = `event-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("panel-images")
@@ -278,10 +276,12 @@ export default function App() {
       </div>
 
       <header className="event-header">
-        <img src="/hylonight.png" alt="Hylo Night" className="event-logo" />
-      </header>
+  <img src="/hylonight.png" alt="Hylo Night" className="event-logo" />
+</header>
 
-      <main className="event-feed">
+<div className="event-header-spacer" />
+
+<main className="event-feed">
         {loading ? (
           <div className="event-empty">Cargando hylos...</div>
         ) : rows.length === 0 ? (
@@ -296,6 +296,7 @@ export default function App() {
                 className={`event-hylo-card ${r.image_url ? "event-hylo-card--image" : ""}`}
               >
                 <div className="event-hylo-overlay" />
+                <div className="event-hylo-shine" />
 
                 <div className="event-hylo-content">
                   <div className="event-hylo-badge">
@@ -330,8 +331,13 @@ export default function App() {
         )}
       </main>
 
-      <button type="button" className="event-plus-btn" onClick={openCreate} aria-label="Publicar hylo">
-        +
+      <button
+        type="button"
+        className="event-plus-btn event-plus-btn--fab"
+        onClick={openCreate}
+        aria-label="Publicar hylo"
+      >
+        <img src="/addhylo.svg" alt="" className="event-plus-icon" />
       </button>
 
       {createOpen && (
