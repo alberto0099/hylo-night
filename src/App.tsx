@@ -41,8 +41,18 @@ function formatHyloDate(iso: string) {
 }
 
 export default function App() {
-  const particles = useMemo(() => Array.from({ length: 24 }), []);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const particleStyles = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        "--left": `${4 + ((i * 11) % 88)}%`,
+        "--size": `${4 + (i % 4) * 2}px`,
+        "--delay": `${(i % 7) * 0.8}s`,
+        "--duration": `${8 + (i % 5)}s`,
+      })) as CSSProperties[],
+    []
+  );
 
   const [rows, setRows] = useState<EventPostRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +74,7 @@ export default function App() {
   const [createClosing, setCreateClosing] = useState(false);
 
   const overLimit = body.length > MAX_CHARS;
+  const hasOverlayOpen = createOpen || confirmOpen || successOpen || !!openImageUrl;
 
   useEffect(() => {
     fetchPosts();
@@ -89,6 +100,23 @@ export default function App() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  useEffect(() => {
+    if (hasOverlayOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+    } else {
+      document.body.style.overflowY = "auto";
+      document.body.style.overflowX = "hidden";
+      document.body.style.touchAction = "pan-y";
+    }
+
+    return () => {
+      document.body.style.overflowY = "auto";
+      document.body.style.overflowX = "hidden";
+      document.body.style.touchAction = "pan-y";
+    };
+  }, [hasOverlayOpen]);
 
   async function fetchPosts() {
     const { data, error } = await supabase
@@ -257,18 +285,11 @@ export default function App() {
       <div className="bg-orb bg-orb-3" />
 
       <div className="particles" aria-hidden="true">
-        {particles.map((_, i) => (
+        {particleStyles.map((style, i) => (
           <span
             key={i}
             className={`particle particle-${(i % 6) + 1}`}
-            style={
-              {
-                "--left": `${4 + ((i * 11) % 88)}%`,
-                "--size": `${4 + (i % 4) * 2}px`,
-                "--delay": `${(i % 7) * 0.8}s`,
-                "--duration": `${8 + (i % 5)}s`,
-              } as CSSProperties
-            }
+            style={style}
           />
         ))}
       </div>
@@ -525,3 +546,4 @@ export default function App() {
     </div>
   );
 }
+
